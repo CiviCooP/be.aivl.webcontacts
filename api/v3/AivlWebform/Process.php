@@ -22,8 +22,8 @@ function _civicrm_api3_aivl_webform_Process_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_aivl_webform_Process($params) {
-  if (!isset($params['webform_title'])) {
-    return civicrm_api3_create_error('Required param webform_title missing');
+  if (!isset($params['data'])) {
+    return civicrm_api3_create_error('Required param data missing');
   }
   $handlerName = CRM_Webcontacts_WebformHandler::getHandler($params);
   if ($handlerName) {
