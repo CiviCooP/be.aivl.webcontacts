@@ -68,7 +68,7 @@ class CRM_Webcontacts_MatchingRules_EmailOnly extends CRM_Xcm_MatchingRule {
       foreach ($foundContacts['values'] as $foundContact) {
         $noOfContacts++;
         $contactIds[] = $foundContact['id'];
-        // only return contact_id if a single match found else use pickContact to select one based on XCM settitngs
+        // only return contact_id if a single match found else use pickContact to select one based on XCM settings
         if ($noOfContacts == 1) {
           $this->_result = array('contact_id' => $foundContacts['id'], 'confidence' => (float).80);
         } else {

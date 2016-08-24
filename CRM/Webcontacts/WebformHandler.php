@@ -51,7 +51,7 @@ abstract class CRM_Webcontacts_WebformHandler {
     $className = NULL;
 
     foreach ($params['data'] as $dataKey => $dataValue) {
-      if ($dataValue['field_key'] == 'civi_xcm_class') {
+      if ($dataValue['field_key'] == 'civicrm_processing_class') {
         $className = "CRM_Webcontacts_".ucfirst($dataValue['field_value'][0]);
       }
     }
