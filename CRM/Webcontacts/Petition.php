@@ -19,7 +19,6 @@ class CRM_Webcontacts_Petition extends CRM_Webcontacts_WebformHandler {
    * @throws Exception when error from API
    */
   function processSubmission() {
-
     if ($this->validSubmissionData()) {
       // match contact with getorcreate API action from extension de.systopia.xcm
       $params = $this->extractContactParamsFromWebform();
@@ -28,7 +27,7 @@ class CRM_Webcontacts_Petition extends CRM_Webcontacts_WebformHandler {
         $this->_contactId = $matched['id'];
         $this->validateCampaign();
         $this->addPetitionActivity();
-        $this->addToPetitionGroup();
+        $this->addToPetitionGroup($params);
         $this->_logger->LogMessage('Success', 'Successfully processed webform submission with data '
         .implode(';', $params).' and campaign_id '.$this->_campaignId);
 
@@ -77,6 +76,12 @@ class CRM_Webcontacts_Petition extends CRM_Webcontacts_WebformHandler {
       }
       if ($dataValues['field_key'] == 'petition_birth_date') {
         $result['birth_date'] = date('Y-m-d', strtotime($dataValues['field_value'][0]));
+      }
+      if ($dataValues['field_key'] == 'petition_keep_me_informed') {
+        $result['petition_keep_me_informed'] = $dataValues['field_value'][0];
+      }
+      if ($dataValues['field_key'] == 'petition_group_ids') {
+        $result['petition_group_ids'] = $dataValues['field_value'][0];
       }
     }
     return $result;
@@ -160,13 +165,25 @@ class CRM_Webcontacts_Petition extends CRM_Webcontacts_WebformHandler {
       return TRUE;
     }
   }
+
   /**
-   * Method to add a contact to the petition group
+   * Method to add a contact to the petition groups
    *
+   * @param array $params
    * @access private
    */
-  private function addToPetitionGroup() {
+  private function addToPetitionGroup($params) {
     $config = CRM_Webcontacts_Config::singleton();
-    $this->addContactToGroup($config->getPetitionGroupId(), $this->_contactId);
+    $petitionGroupId = $config->getPetitionGroupId();
+    if (!empty($petitionGroupId)) {
+      $this->addContactToGroup($petitionGroupId, $this->_contactId);
+    }
+    // add all contact to all groups on form if any
+    if (isset($params['petition_keep_me_informed']) && $params['petition_keep_me_informed'] == 'Y') {
+      $groupIds = explode(';', $params['petition_group_ids']);
+      foreach ($groupIds as $groupId) {
+        $this->addContactToGroup($groupId, $this->_contactId);
+      }
+    }
   }
 }
