@@ -105,4 +105,26 @@ abstract class CRM_Webcontacts_WebformHandler {
       return FALSE;
     }
   }
+
+  /**
+   * Method to remove contact from group
+   *
+   * @param $groupId
+   * @param $contactId
+   * @return bool|array
+   */
+  protected function removeContactFromGroup($groupId, $contactId) {
+    if (!empty($contactId) && !empty($groupId)) {
+      $params = array(
+        'contact_id' => $contactId,
+        'group_id' => $groupId
+      );
+      $group = civicrm_api3('GroupContact', 'delete', $params);
+      return $group;
+    } else {
+      $this->_logger->logMessage('Warning', 'Contact or Group empty, no contact removed from group in '.__METHOD__
+        .' for group_id '.$groupId.' and contact_id '.$contactId);
+      return FALSE;
+    }
+  }
 }
