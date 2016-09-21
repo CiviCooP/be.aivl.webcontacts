@@ -155,10 +155,22 @@ class CRM_Webcontacts_Petition extends CRM_Webcontacts_WebformHandler {
    * @return bool
    */
   private function petitionActivityExists($activityData) {
-    $activityData['is_current_revision'] = 1;
-    $activityData['is_deleted'] = 0;
-    $activityData['is_test'] = 0;
-    $countActivity = civicrm_api3('Activity', 'getcount', $activityData);
+    $query = 'SELECT COUNT(*) FROM civicrm_activity a
+LEFT JOIN civicrm_activity_contact src ON a.id = src.activity_id AND src.record_type_id = %1
+LEFT JOIN civicrm_activity_contact tar ON a.id = tar.activity_id AND tar.record_type_id = %2
+WHERE a.activity_type_id = %3 AND a.campaign_id = %4 AND a.is_current_revision = %5 
+  AND a.is_deleted = %6 AND a.is_test = %6 AND src.contact_id = %7 AND tar.contact_id = %8';
+    $params = array(
+      1 => array(2, 'Integer'),
+      2 => array(3, 'Integer'),
+      3 => array($activityData['activity_type_id'], 'Integer'),
+      4 => array($activityData['campaign_id'], 'Integer'),
+      5 => array(1, 'Integer'),
+      6 => array(0, 'Integer'),
+      7 => array($activityData['source_contact_id'], 'Integer'),
+      8 => array($activityData['target_contact_id'], 'Integer')
+    );
+    $countActivity = CRM_Core_DAO::singleValueQuery($query, $params);
     if ($countActivity == 0) {
       return FALSE;
     } else {
