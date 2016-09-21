@@ -192,7 +192,7 @@ WHERE a.activity_type_id = %3 AND a.campaign_id = %4 AND a.is_current_revision =
     }
     // add all contact to all groups on form if any
     $groupIds = explode(';', $params['petition_group_ids']);
-    if (isset($params['petition_keep_me_informed']) && $params['petition_keep_me_informed'] == 1) {
+    if ($params['petition_keep_me_informed']) {
       foreach ($groupIds as $groupId) {
         $this->addContactToGroup($groupId, $this->_contactId);
       }
