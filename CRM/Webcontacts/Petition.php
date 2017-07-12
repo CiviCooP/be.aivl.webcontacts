@@ -66,13 +66,13 @@ class CRM_Webcontacts_Petition extends CRM_Webcontacts_WebformHandler {
     $result = array();
     foreach ($this->_webformData['data'] as $dataKey => $dataValues) {
       if ($dataValues['field_key'] == 'petition_first_name') {
-        $result['first_name'] = $dataValues['field_value'][0];
+        $result['first_name'] = trim($dataValues['field_value'][0]);
       }
       if ($dataValues['field_key'] == 'petition_last_name') {
-        $result['last_name'] = $dataValues['field_value'][0];
+        $result['last_name'] = trim($dataValues['field_value'][0]);
       }
       if ($dataValues['field_key'] == 'petition_email') {
-        $result['email'] = $dataValues['field_value'][0];
+        $result['email'] = trim($dataValues['field_value'][0]);
       }
       if ($dataValues['field_key'] == 'petition_birth_date') {
         $result['birth_date'] = date('Y-m-d', strtotime($dataValues['field_value'][0]));
@@ -122,6 +122,7 @@ class CRM_Webcontacts_Petition extends CRM_Webcontacts_WebformHandler {
         return FALSE;
       }
     }
+    // todo do we want to add a check on valid email?
     return TRUE;
   }
 
