@@ -26,7 +26,7 @@ class CRM_Webcontacts_Petition extends CRM_Webcontacts_WebformHandler {
         $matched = civicrm_api3('Contact', 'getorcreate', $params);
         $this->_contactId = $matched['id'];
         $this->addPetitionActivity();
-        $this->addToPetitionGroup($params);
+        $this->addToPetitionGroup();
       } catch (CiviCRM_API3_Exception $ex) {
         CRM_Core_Error::debug_log_message('Could not match a contact using API Contact getorcreate in '.__METHOD__
           .', no further processing of petition. (extension be.aivl.webcontacts)');
@@ -146,7 +146,6 @@ class CRM_Webcontacts_Petition extends CRM_Webcontacts_WebformHandler {
       $activityData['subject'] = 'Petition signed (campaign '.$campaignTitle.')';
       $activityData['campaign_id'] = $this->_campaignId;
     }
-
     if ($this->petitionActivityExists($activityData)) {
       CRM_Core_Error::debug_log_message('Petition activity for contact '.$this->_contactId.', campaign '
         .$this->_campaignId.' already exists, not duplicated');
@@ -188,10 +187,9 @@ WHERE a.activity_type_id = %3 AND a.campaign_id = %4 AND a.is_current_revision =
   /**
    * Method to add a contact to the petition groups
    *
-   * @param array $params
    * @access private
    */
-  private function addToPetitionGroup($params) {
+  private function addToPetitionGroup() {
     $config = CRM_Webcontacts_Config::singleton();
     $petitionGroupId = $config->getPetitionGroupId();
     if (!empty($petitionGroupId)) {

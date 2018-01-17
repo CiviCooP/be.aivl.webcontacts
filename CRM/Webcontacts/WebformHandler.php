@@ -72,8 +72,12 @@ abstract class CRM_Webcontacts_WebformHandler {
       }
     }
     try {
-      return civicrm_api3('Activity', 'Create', $data);
+      $activity = civicrm_api3('Activity', 'Create', $data);
+      CRM_Core_Error::debug('activity', $activity);
+      return $activity;
     } catch (CiviCRM_API3_Exception $ex) {
+      CRM_Core_Error::debug('error', $ex);
+      exit();
       CRM_Core_Error::debug_log_message( 'Could not create activity in '.__METHOD__.' with API Activity create (extension be.aivl.webcontacts)');
     }
   }
