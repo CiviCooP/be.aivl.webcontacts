@@ -11,7 +11,6 @@
 abstract class CRM_Webcontacts_WebformHandler {
 
   protected $_webformData = array();
-  protected $_logger = NULL;
   /**
    * CRM_Webcontacts_WebformHandler constructor.
    * @param $webformData
@@ -26,10 +25,6 @@ abstract class CRM_Webcontacts_WebformHandler {
    *@access protected
    */
   protected function setWebformData($webformData) {
-    $parts = explode(' ', $webformData['webform_title']);
-    $webFormTitle = implode('_', $parts);
-    $this->_logger = new CRM_Webcontacts_Logger($webFormTitle);
-
     $this->_webformData = $webformData;
   }
 
@@ -65,22 +60,21 @@ abstract class CRM_Webcontacts_WebformHandler {
    * Method to create an activity
    *
    * @param array $data
-   * @return bool|CRM_Activity_BAO_Activity
+   * @return bool|array
    */
   protected function createActivity($data) {
     $requiredFields = array('source_contact_id', 'activity_type_id', 'status_id', 'target_contact_id');
     foreach ($requiredFields as $requiredField) {
       if (!isset($data[$requiredField]) || empty($data[$requiredField])) {
-        $this->_logger->logMessage('Error', 'Required field '.$requiredField.' not present or empty, 
-          will not create petition activity in '.__METHOD__.' with data '.implode(';', $data));
+        CRM_Core_Error::debug_log_message( 'Required field '.$requiredField.' not present or empty, 
+          will not create petition activity in '.__METHOD__.' (extension be.aivl.webcontacts)');
         return FALSE;
       }
     }
     try {
       return civicrm_api3('Activity', 'Create', $data);
     } catch (CiviCRM_API3_Exception $ex) {
-      $this->_logger->logMessage('Error', 'Could not create activity in '.__METHOD__.' with data '.implode(';', $data)
-        .' with API Activity create. Error message from API: '.$ex->getMessage());
+      CRM_Core_Error::debug_log_message( 'Could not create activity in '.__METHOD__.' with API Activity create (extension be.aivl.webcontacts)');
     }
   }
 
@@ -90,6 +84,7 @@ abstract class CRM_Webcontacts_WebformHandler {
    * @param $groupId
    * @param $contactId
    * @return bool|array
+   * @throws
    */
   protected function addContactToGroup($groupId, $contactId) {
     if (!empty($contactId) && !empty($groupId)) {
@@ -100,8 +95,6 @@ abstract class CRM_Webcontacts_WebformHandler {
       $group = civicrm_api3('GroupContact', 'create', $params);
       return $group;
     } else {
-      $this->_logger->logMessage('Warning', 'Contact or Group empty, no contact added to group in '.__METHOD__
-        .' for group_id '.$groupId.' and contact_id '.$contactId);
       return FALSE;
     }
   }
@@ -112,6 +105,7 @@ abstract class CRM_Webcontacts_WebformHandler {
    * @param $groupId
    * @param $contactId
    * @return bool|array
+   * @throws
    */
   protected function removeContactFromGroup($groupId, $contactId) {
     if (!empty($contactId) && !empty($groupId)) {
@@ -122,8 +116,6 @@ abstract class CRM_Webcontacts_WebformHandler {
       $group = civicrm_api3('GroupContact', 'delete', $params);
       return $group;
     } else {
-      $this->_logger->logMessage('Warning', 'Contact or Group empty, no contact removed from group in '.__METHOD__
-        .' for group_id '.$groupId.' and contact_id '.$contactId);
       return FALSE;
     }
   }

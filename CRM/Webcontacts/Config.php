@@ -15,14 +15,47 @@ class CRM_Webcontacts_Config {
   protected $_petitionActivityTypeId = NULL;
   protected $_petitionGroupId = NULL;
   protected $_completedActivityStatusId = NULL;
+  protected $_aivlContactId = NULL;
 
   /**
    * CRM_Webcontacts_Config constructor.
+   *
+   * @throws Exception when not able to find any domain contact id
    */
   function __construct() {
     $this->setPetitionActivityTypeId();
     $this->setCompletedActivityStatusId();
     $this->setPetitionGroupId();
+    try {
+      $this->_aivlContactId = civicrm_api3('Contact', 'getvalue', array(
+        'contact_type' => 'Organization',
+        'legal_name' => 'Amnesty International Vlaanderen VZW',
+        'options' => array('limit' => 1),
+        'return' => 'id',
+      ));
+    }
+    catch (CiviCRM_API3_Exception $ex) {
+      // use domain contact_id if nothing found
+      try {
+        $this->_aivlContactId = civicrm_api3('Domain', 'getvalue', array(
+          'return' => "contact_id",
+          'options' => array('limit' => 1),
+        ));
+      }
+      catch (CiviCRM_API3_Exception $ex) {
+        throw new Exception('Could not find a valid domain contact id in '.__METHOD__.
+          ' (extension be.aivl.webcontacts)');
+      }
+    }
+  }
+
+  /**
+   * Getter for AIVL contact id
+   *
+   * @return array|null
+   */
+  public function getAivlContactId() {
+    return $this->_aivlContactId;
   }
 
   /**

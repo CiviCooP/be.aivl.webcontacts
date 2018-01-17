@@ -25,35 +25,30 @@ class CRM_Webcontacts_Petition extends CRM_Webcontacts_WebformHandler {
       try {
         $matched = civicrm_api3('Contact', 'getorcreate', $params);
         $this->_contactId = $matched['id'];
-        $this->validateCampaign();
         $this->addPetitionActivity();
         $this->addToPetitionGroup($params);
-        $this->_logger->LogMessage('Success', 'Successfully processed webform submission with data '
-        .implode(';', $params).' and campaign_id '.$this->_campaignId);
-
       } catch (CiviCRM_API3_Exception $ex) {
-        $this->_logger->logMessage('Error', 'Could not match a contact using API Contact getorcreate with params: '
-          .implode(';', $params).' in '.__METHOD__.', no further processing of petition. Error message from Contact 
-          getorcreate: '.$ex->getMessage());
+        CRM_Core_Error::debug_log_message('Could not match a contact using API Contact getorcreate in '.__METHOD__
+          .', no further processing of petition. (extension be.aivl.webcontacts)');
       }
     }
   }
 
   /**
-   * Method to check the campaign
+   * Method to retrieve the campaign title
    *
    * @access private
+   * @return array|bool
    */
-  private function validateCampaign() {
+  private function getCampaignTitle() {
     try {
-      $countCampaign = civicrm_api3('Campaign', 'getcount', array('id' => $this->_campaignId));
-      if ($countCampaign == 0) {
-        $this->_logger->logMessage('Warning', 'Could not find campaign with id '.$this->_campaignId
-          .' in '.__METHOD__.'. Activity will be created but not linked to campaign');
-      }
+      return civicrm_api3('Campaign', 'getvalue', array(
+        'id' => $this->_campaignId,
+        'return' => 'title'));
     } catch (CiviCRM_API3_Exception $ex) {
-      $this->_logger->logMessage('Warning', 'Could not find campaign with id '.$this->_campaignId
-        .'. Activity will be created but not linked to campaign');
+      CRM_Core_Error::debug_log_message('Could not find campaign with id '.$this->_campaignId
+        .'. Activity will be created but not linked to campaign (extension be.aivl.webcontacts)');
+      return FALSE;
     }
   }
 
@@ -106,23 +101,28 @@ class CRM_Webcontacts_Petition extends CRM_Webcontacts_WebformHandler {
         if ($dataValues['field_key'] == 'petition_campaign_id') {
           $this->_campaignId = $dataValues['field_value'][0];
         }
+        if ($dataValues['field_key'] == 'petition_email') {
+          if (!filter_var($dataValues['field_value'][0], FILTER_VALIDATE_EMAIL)) {
+            CRM_Core_Error::debug_log_message($dataValues['field_value'][0]
+              .' is not a valid email, petition signature ignored! (extension be.aivl.webcontacts)');
+          }
+        }
       }
     }
     foreach ($mandatoryElements as $mandatoryElement) {
       if (!isset($receivedElements[$mandatoryElement])) {
-        $this->_logger->logMessage('Error', 'Missing mandatory element '.$mandatoryElement.' in webform '
-          .$this->_webformData['webform_title']);
+        CRM_Core_Error::debug_log_message('Missing mandatory element '.$mandatoryElement.' in webform '
+          .$this->_webformData['webform_title'].' (extension be.aivl.webcontacts)');
         return FALSE;
       }
     }
     foreach ($receivedElements as $receivedName => $receivedKey) {
       if (empty($this->_webformData['data'][$receivedKey]['field_value'])) {
-        $this->_logger->logMessage('Error', 'Empty mandatory element '.$receivedName.' in webform '
-          .$this->_webformData['webform_title']);
+        CRM_Core_Error::debug_log_message('Empty mandatory element '.$receivedName.' in webform '
+          .$this->_webformData['webform_title'].' (extension be.aivl.webcontacts)');
         return FALSE;
       }
     }
-    // todo do we want to add a check on valid email?
     return TRUE;
   }
 
@@ -134,16 +134,22 @@ class CRM_Webcontacts_Petition extends CRM_Webcontacts_WebformHandler {
   private function addPetitionActivity() {
     $config = CRM_Webcontacts_Config::singleton();
     $activityData = array(
-      'source_contact_id' => 35,
+      'source_contact_id' => $config->getAivlContactId(),
       'activity_type_id' => $config->getPetitionActivityTypeId(),
       'status_id' => $config->getCompletedActivityStatusId(),
       'target_contact_id' => $this->_contactId,
-      'campaign_id' => $this->_campaignId,
       'activity_date_time' => date('Y-m-d H:i:s')
     );
+    // add campaign title to subject
+    $campaignTitle = $this->getCampaignTitle();
+    if ($campaignTitle) {
+      $activityData['subject'] = 'Petition signed (campaign '.$campaignTitle.')';
+      $activityData['campaign_id'] = $this->_campaignId;
+    }
+
     if ($this->petitionActivityExists($activityData)) {
-      $this->_logger->logMessage('Warning', 'Petition activity with data ' . implode(';', $activityData)
-        . ' already exists, not duplicated');
+      CRM_Core_Error::debug_log_message('Petition activity for contact '.$this->_contactId.', campaign '
+        .$this->_campaignId.' already exists, not duplicated');
     } else {
       $this->createActivity($activityData);
     }
@@ -190,17 +196,6 @@ WHERE a.activity_type_id = %3 AND a.campaign_id = %4 AND a.is_current_revision =
     $petitionGroupId = $config->getPetitionGroupId();
     if (!empty($petitionGroupId)) {
       $this->addContactToGroup($petitionGroupId, $this->_contactId);
-    }
-    // add all contact to all groups on form if any
-    $groupIds = explode(';', $params['petition_group_ids']);
-    if ($params['petition_keep_me_informed']) {
-      foreach ($groupIds as $groupId) {
-        $this->addContactToGroup($groupId, $this->_contactId);
-      }
-    } else {
-      foreach ($groupIds as $groupId) {
-        $this->removeContactFromGroup($groupId, $this->_contactId);
-      }
     }
   }
 }
