@@ -13,19 +13,19 @@
  * @link https://civicoop.plan.io/issues/427
  */
 class CRM_Webcontacts_MatchingRules_EmailOnly extends CRM_Xcm_MatchingRule {
-  
+
   private $_email = NULL;
   private $_contactType = NULL;
   private $_result = array();
-  
+
   /**
    * Method to find a matching contact and return it
-   * 
+   *
    * @param array $contactData
    * @param array $params
    * @return array $result
    */
-  function matchContact($contactData, $params = NULL) {
+  function matchContact(&$contactData, $params = NULL) {
     $this->_result = array('contact_id' => 0, 'confidence' => 0);
     // validate the contact data coming in and set the relevant properties
     if ($this->validateContactData($contactData)) {
@@ -35,9 +35,9 @@ class CRM_Webcontacts_MatchingRules_EmailOnly extends CRM_Xcm_MatchingRule {
   }
 
   /**
-   * Method to validate the contact data coming in against the required params and set the 
+   * Method to validate the contact data coming in against the required params and set the
    * properties if all is ok
-   * 
+   *
    * @param $contactData
    * @return bool
    */

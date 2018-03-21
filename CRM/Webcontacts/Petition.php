@@ -19,6 +19,7 @@ class CRM_Webcontacts_Petition extends CRM_Webcontacts_WebformHandler {
    * @throws Exception when error from API
    */
   function processSubmission() {
+
     if ($this->validSubmissionData()) {
       // match contact with getorcreate API action from extension de.systopia.xcm
       $params = $this->extractContactParamsFromWebform();
@@ -143,7 +144,7 @@ class CRM_Webcontacts_Petition extends CRM_Webcontacts_WebformHandler {
     // add campaign title to subject
     $campaignTitle = $this->getCampaignTitle();
     if ($campaignTitle) {
-      $activityData['subject'] = 'Petition signed (campaign '.$campaignTitle.')';
+      $activityData['subject'] = $campaignTitle;
       $activityData['campaign_id'] = $this->_campaignId;
     }
     if ($this->petitionActivityExists($activityData)) {
@@ -164,7 +165,7 @@ class CRM_Webcontacts_Petition extends CRM_Webcontacts_WebformHandler {
     $query = 'SELECT COUNT(*) FROM civicrm_activity a
 LEFT JOIN civicrm_activity_contact src ON a.id = src.activity_id AND src.record_type_id = %1
 LEFT JOIN civicrm_activity_contact tar ON a.id = tar.activity_id AND tar.record_type_id = %2
-WHERE a.activity_type_id = %3 AND a.campaign_id = %4 AND a.is_current_revision = %5 
+WHERE a.activity_type_id = %3 AND a.campaign_id = %4 AND a.is_current_revision = %5
   AND a.is_deleted = %6 AND a.is_test = %6 AND src.contact_id = %7 AND tar.contact_id = %8';
     $params = array(
       1 => array(2, 'Integer'),
