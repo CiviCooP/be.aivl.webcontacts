@@ -23,6 +23,7 @@ class CRM_Webcontacts_Petition extends CRM_Webcontacts_WebformHandler {
     if ($this->validSubmissionData()) {
       // match contact with getorcreate API action from extension de.systopia.xcm
       $params = $this->extractContactParamsFromWebform();
+      $params['check_permissions'] = 0;
       try {
         $matched = civicrm_api3('Contact', 'getorcreate', $params);
         $this->_contactId = $matched['id'];
@@ -44,6 +45,7 @@ class CRM_Webcontacts_Petition extends CRM_Webcontacts_WebformHandler {
   private function getCampaignTitle() {
     try {
       return civicrm_api3('Campaign', 'getvalue', array(
+        'check_permissions' => 0,
         'id' => $this->_campaignId,
         'return' => 'title'));
     } catch (CiviCRM_API3_Exception $ex) {

@@ -3,6 +3,22 @@
 require_once 'webcontacts.civix.php';
 
 /**
+ * Define custom (Drupal) permissions
+ */
+function webcontacts_civicrm_permission(&$permissions) {
+  $permissions['access AIVL API'] = 'AIVL-API: access AIVL API';
+}
+
+
+/**
+ * Set permissions for runner/engine API call
+ */
+function webcontacts_civicrm_alterAPIPermissions($entity, $action, &$params, &$permissions) {
+  $permissions['aivl_webform']['process'] = array('access AIVL API');
+}
+
+
+/**
  * Implements hook_civicrm_config().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_config

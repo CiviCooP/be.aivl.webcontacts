@@ -62,6 +62,7 @@ class CRM_Webcontacts_MatchingRules_EmailOnly extends CRM_Xcm_MatchingRule {
     $contactIds = array();
     try {
       $foundContacts = civicrm_api3('Contact', 'get', array(
+        'check_permissions' => 0,
         'email' => $this->_email,
         'contact_type' => $this->_contactType,
         'options' => array('limit' => 9999)));

@@ -66,12 +66,13 @@ abstract class CRM_Webcontacts_WebformHandler {
     $requiredFields = array('source_contact_id', 'activity_type_id', 'status_id', 'target_contact_id');
     foreach ($requiredFields as $requiredField) {
       if (!isset($data[$requiredField]) || empty($data[$requiredField])) {
-        CRM_Core_Error::debug_log_message( 'Required field '.$requiredField.' not present or empty, 
+        CRM_Core_Error::debug_log_message( 'Required field '.$requiredField.' not present or empty,
           will not create petition activity in '.__METHOD__.' (extension be.aivl.webcontacts)');
         return FALSE;
       }
     }
     try {
+      $date['check_permissions'] = 0;
       $activity = civicrm_api3('Activity', 'Create', $data);
       CRM_Core_Error::debug('activity', $activity);
       return $activity;
@@ -93,6 +94,7 @@ abstract class CRM_Webcontacts_WebformHandler {
   protected function addContactToGroup($groupId, $contactId) {
     if (!empty($contactId) && !empty($groupId)) {
       $params = array(
+        'check_permissions' => 0,
         'contact_id' => $contactId,
         'group_id' => $groupId
       );
@@ -114,6 +116,7 @@ abstract class CRM_Webcontacts_WebformHandler {
   protected function removeContactFromGroup($groupId, $contactId) {
     if (!empty($contactId) && !empty($groupId)) {
       $params = array(
+        'check_permissions' => 0,
         'contact_id' => $contactId,
         'group_id' => $groupId
       );

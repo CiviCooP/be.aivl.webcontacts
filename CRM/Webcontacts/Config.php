@@ -28,6 +28,7 @@ class CRM_Webcontacts_Config {
     $this->setPetitionGroupId();
     try {
       $this->_aivlContactId = civicrm_api3('Contact', 'getvalue', array(
+        'check_permissions' => 0,
         'contact_type' => 'Organization',
         'legal_name' => 'Amnesty International Vlaanderen VZW',
         'options' => array('limit' => 1),
@@ -38,6 +39,7 @@ class CRM_Webcontacts_Config {
       // use domain contact_id if nothing found
       try {
         $this->_aivlContactId = civicrm_api3('Domain', 'getvalue', array(
+          'check_permissions' => 0,
           'return' => "contact_id",
           'options' => array('limit' => 1),
         ));
@@ -96,6 +98,7 @@ class CRM_Webcontacts_Config {
    */
   private function setPetitionActivityTypeId() {
     $params = array(
+      'check_permissions' => 0,
       'option_group_id' => 'activity_type',
       'name' => 'petition_signed',
       'return' => 'value'
@@ -123,6 +126,7 @@ class CRM_Webcontacts_Config {
    */
   private function setCompletedActivityStatusId() {
     $params = array(
+      'check_permissions' => 0,
       'option_group_id' => 'activity_status',
       'name' => 'Completed',
       'return' => 'value'
@@ -139,7 +143,10 @@ class CRM_Webcontacts_Config {
    * @throws Exception when error from create API
    */
   private function setPetitionGroupId() {
-    $params = array('name' => 'petition_form_signed', 'return' => 'id');
+    $params = array(
+      'check_permissions' => 0,
+      'name' => 'petition_form_signed',
+      'return' => 'id');
     try {
       $this->_petitionGroupId = civicrm_api3('Group', 'getvalue', $params);
     } catch (CiviCRM_API3_Exception $ex) {
